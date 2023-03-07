@@ -1,7 +1,7 @@
 version: '2'
 services:
-  freenet:
-    container_name: freenet
+  freenet-patched:
+    container_name: freenet-patched
     image: dern3rd/freenet
     # network_mode: "host"
     ports:
