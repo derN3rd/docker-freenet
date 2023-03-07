@@ -61,7 +61,7 @@ ENV allowedhosts=127.0.0.1,0:0:0:0:0:0:0:1 darknetport=12345 opennetport=12346
 # Do not run freenet as root user:
 RUN mkdir -p /conf /data 
 RUN addgroup --gid 1000 fred
-RUN adduser --uid 1000 --group fred -h /fred fred 
+RUN adduser --uid 1000 --ingroup fred --home /fred fred
 RUN chown -R 1000:1000 /conf
 RUN chown -R 1000:1000 /data
 USER 1000
