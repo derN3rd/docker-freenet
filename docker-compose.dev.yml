@@ -1,0 +1,21 @@
+version: '2'
+services:
+  freenet:
+    container_name: freenet
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # network_mode: "host"
+    ports:
+      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:9481:9481"
+      - "12345:12345/udp"
+      - "12346:12346/udp"
+    volumes:
+      - ./.docker-volumes/conf:/conf
+      - ./.docker-volumes/data:/data
+    environment:
+    - allowedhosts=127.0.0.1,0:0:0:0:0:0:0:1
+    - darknetport=12345
+    - opennetport=12346

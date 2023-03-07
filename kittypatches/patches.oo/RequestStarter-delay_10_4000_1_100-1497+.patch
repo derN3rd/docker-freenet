@@ -1,0 +1,44 @@
+--- a/src/freenet/node/RequestStarter.java
++++ b/src/freenet/node/RequestStarter.java
+@@ -70,6 +70,8 @@ public class RequestStarter implements Runnable, RandomGrabArrayItemExclusionLis
+ 	private final boolean isInsert;
+ 	private final boolean isSSK;
+ 	final boolean realTime;
++	private long lastDelay;
++	private final long a, b, c, minDelay;
+ 	
+ 	static final int MAX_WAITING_FOR_SLOTS = 50;
+ 	
+@@ -84,6 +86,11 @@ public class RequestStarter implements Runnable, RandomGrabArrayItemExclusionLis
+ 		this.isInsert = isInsert;
+ 		this.isSSK = isSSK;
+ 		this.realTime = realTime;
++		this.lastDelay = 4000; // start slowly
++		this.a = 10;//7;
++		this.b = 4000;//2;
++		this.c = 1;//1;
++		this.minDelay = 100; //100
+ 	}
+ 
+ 	void setScheduler(RequestScheduler sched) {
+@@ -127,8 +134,15 @@ public class RequestStarter implements Runnable, RandomGrabArrayItemExclusionLis
+ 				if(logMINOR) Logger.minor(this, "Running "+req+" priority "+req.getPriority());
+ 				if(!req.localRequestOnly) {
+ 					// Wait
+-					long delay;
+-					delay = throttle.getDelay();
++					long delay; long toadsDelay;
++					toadsDelay = throttle.getDelay();
++					if (this.isSSK || this.realTime) { // use toads delay
++						delay = toadsDelay;
++					} else {
++						delay = (a*this.minDelay + b*this.lastDelay + c*toadsDelay) / (a + b + c);
++						if(logMINOR) Logger.minor(this, "timestamp="+System.currentTimeMillis()+" toadsDelay="+toadsDelay+" newDelay="+delay+" from "+throttle);
++					}
++					this.lastDelay = delay;
+ 					if(logMINOR) Logger.minor(this, "Delay="+delay+" from "+throttle);
+ 					long sleepUntil = cycleTime + delay;
+ 					long now;
+-- 
+2.37.1 (Apple Git-137.1)
+

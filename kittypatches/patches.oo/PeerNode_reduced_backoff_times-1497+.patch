@@ -1,0 +1,83 @@
+--- a/src/freenet/node/PeerNode.java
++++ b/src/freenet/node/PeerNode.java
+@@ -2829,20 +2829,26 @@ public abstract class PeerNode implements USKRetrieverCallback, BasePeerNode, Pe
+ 
+ 	public boolean isRoutingBackedOff(long ignoreBackoffUnder, boolean realTime) {
+ 		long now = System.currentTimeMillis();
+-		double pingTime;
++		double pingTime; double mPeerPingTime;
+ 		synchronized(this) {
+ 			long routingBackedOffUntil = realTime ? routingBackedOffUntilRT : routingBackedOffUntilBulk;
+-			if(now < routingBackedOffUntil) {
+-				if(routingBackedOffUntil - now >= ignoreBackoffUnder) return true;
+-			}
+ 			long transferBackedOffUntil = realTime ? transferBackedOffUntilRT : transferBackedOffUntilBulk;
+-			if(now < transferBackedOffUntil) {
+-				if(transferBackedOffUntil - now >= ignoreBackoffUnder) return true;
++			if(now < routingBackedOffUntil || now < transferBackedOffUntil) {
++				//oo
++				long remRoutingBackedOff = Math.max(0, routingBackedOffUntil - now);
++				long remTransferBackedOff = Math.max(0, transferBackedOffUntil - now);
++				Logger.minor(this, "remaining routingBackedOff="+remRoutingBackedOff+" remaining transferBackedOff="+remTransferBackedOff+
++							" last reason="+getLastBackoffReason(realTime));
++				return true;
+ 			}
+ 			if(isInMandatoryBackoff(now, realTime)) return true;
+ 			pingTime = averagePingTime();
+ 		}
+-		if(pingTime > maxPeerPingTime()) return true;
++		mPeerPingTime = maxPeerPingTime();
++		if(pingTime > mPeerPingTime) {
++			Logger.minor(this, "pingTime="+pingTime+" maxPeerPingTime="+mPeerPingTime);
++			return true;
++		}
+ 		return false;
+ 	}
+ 	
+@@ -2875,21 +2881,21 @@ public abstract class PeerNode implements USKRetrieverCallback, BasePeerNode, Pe
+ 	long routingBackedOffUntilRT = -1;
+ 	long routingBackedOffUntilBulk = -1;
+ 	/** Initial nominal routing backoff length */
+-	static final int INITIAL_ROUTING_BACKOFF_LENGTH = (int) SECONDS.toMillis(1);
++	static final int INITIAL_ROUTING_BACKOFF_LENGTH = 200; //oo: 200 ms //1000;  // 1 second
+ 	/** How much to multiply by during fast routing backoff */
+ 
+ 	static final int BACKOFF_MULTIPLIER = 2;
+ 	/** Maximum upper limit to routing backoff slow or fast */
+-	static final int MAX_ROUTING_BACKOFF_LENGTH = (int) MINUTES.toMillis(8);
++	static final int MAX_ROUTING_BACKOFF_LENGTH = 3*60*1000; //oo: 3 minutes // = (int) MINUTES.toMillis(8);
+ 	/** Current nominal routing backoff length */
+ 
+ 	// Transfer Backoff
+ 
+ 	long transferBackedOffUntilRT = -1;
+ 	long transferBackedOffUntilBulk = -1;
+-	static final int INITIAL_TRANSFER_BACKOFF_LENGTH = (int) SECONDS.toMillis(30); // 60 seconds, but it starts at twice this.
++	static final int INITIAL_TRANSFER_BACKOFF_LENGTH = 200; //oo: 200 ms //30*1000; // 60 seconds, but it starts at twice this.
+ 	static final int TRANSFER_BACKOFF_MULTIPLIER = 2;
+-	static final int MAX_TRANSFER_BACKOFF_LENGTH = (int) MINUTES.toMillis(8);
++	static final int MAX_TRANSFER_BACKOFF_LENGTH = 3*60*1000; //oo: 3 minutes // (int) MINUTES.toMillis(8);
+ 
+ 	int transferBackoffLengthRT = INITIAL_TRANSFER_BACKOFF_LENGTH;
+ 	int transferBackoffLengthBulk = INITIAL_TRANSFER_BACKOFF_LENGTH;
+@@ -3068,7 +3074,7 @@ public abstract class PeerNode implements USKRetrieverCallback, BasePeerNode, Pe
+ 		synchronized(this) {
+ 			// Don't un-backoff if still backed off
+ 			long until;
+-			if(now > (until = realTime ? routingBackedOffUntilRT : routingBackedOffUntilBulk)) {
++			if (true) { //oo (now > (until = realTime ? routingBackedOffUntilRT : routingBackedOffUntilBulk)) {
+ 				if(realTime)
+ 					routingBackoffLengthRT = INITIAL_ROUTING_BACKOFF_LENGTH;
+ 				else
+@@ -3102,7 +3108,7 @@ public abstract class PeerNode implements USKRetrieverCallback, BasePeerNode, Pe
+ 			// Don't back off any further if we are already backed off
+ 			long transferBackedOffUntil = realTime ? transferBackedOffUntilRT : transferBackedOffUntilBulk;
+ 			int transferBackoffLength = realTime ? transferBackoffLengthRT : transferBackoffLengthBulk;
+-			if(now > transferBackedOffUntil) {
++			if (true) { //oo (now > transferBackedOffUntil) {
+ 				transferBackoffLength = transferBackoffLength * TRANSFER_BACKOFF_MULTIPLIER;
+ 				if(transferBackoffLength > MAX_TRANSFER_BACKOFF_LENGTH)
+ 					transferBackoffLength = MAX_TRANSFER_BACKOFF_LENGTH;
+-- 
+2.37.1 (Apple Git-137.1)
+

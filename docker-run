@@ -1,0 +1,27 @@
+#!/bin/sh
+
+trapexit() {
+  echo -n "Trapped SIGTERM @" >>/data/logs/term.log
+  date >>/data/logs/term.log
+  /fred/run.sh stop >>/data/logs/term.log
+  echo "exited: $1" >>/data/logs/term.log
+  exit 0
+}
+
+trap 'trapexit' TERM
+
+if [ ! -f /conf/freenet.ini ]; then
+  cp /defaults/freenet.ini /conf/
+  sed -i "s#ALLOWEDHOSTS#$allowedhosts#" /conf/freenet.ini
+  sed -i "s#DARKNETPORT#$darknetport#" /conf/freenet.ini
+  sed -i "s#OPENNETPORT#$opennetport#" /conf/freenet.ini
+fi
+
+if [ ! -f /data/seednodes.fref ]; then
+  cp /fred/seednodes.fref /data/
+fi
+
+cd /fred
+
+./run.sh console &
+wait
