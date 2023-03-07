@@ -12,9 +12,8 @@ services:
       - "12345:12345/udp"
       - "12346:12346/udp"
     volumes:
+      - ./volumes/conf:/conf
+      - ./volumes/data:/data
+      - ./volumes/downloads:/downloads
       - ./.docker-volumes/conf:/conf
       - ./.docker-volumes/data:/data
-    environment:
-    - allowedhosts=127.0.0.1,0:0:0:0:0:0:0:1
-    - darknetport=12345
-    - opennetport=12346
