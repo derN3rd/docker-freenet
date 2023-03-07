@@ -57,13 +57,13 @@ LABEL maintainer="derN3rd <oss@dern3rd.de>"
 # Runtime argument
 ENV allowedhosts=127.0.0.1,0:0:0:0:0:0:0:1 darknetport=12345 opennetport=12346
 
-RUN apt update && apt install -y nano
 
 # Do not run freenet as root user:
 RUN mkdir -p /conf /data 
 RUN addgroup --gid 1000 fred
 RUN adduser --uid 1000 --group fred -h /fred fred 
-RUN chown 1000:1000 /conf /data
+RUN chown -R 1000:1000 /conf
+RUN chown -R 1000:1000 /data
 USER 1000
 WORKDIR /fred
 # VOLUME ["/conf", "/data"]
@@ -73,6 +73,13 @@ COPY --chown=1000:1000 --from=builder /build/fred/build/libs/freenet.jar /fred/
 COPY --chown=1000:1000 ./freenet.ini /conf/
 COPY --chown=1000:1000 ./freenet.ini /defaults/
 COPY --chown=1000:1000 docker-run /fred/
+
+USER root
+
+RUN chown -R 1000:1000 /conf
+RUN chown -R 1000:1000 /data
+
+USER 1000
 
 # Interfaces:
 EXPOSE 8888 9481 ${darknetport}/udp ${opennetport}/udp
