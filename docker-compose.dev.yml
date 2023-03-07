@@ -1,7 +1,7 @@
 version: '2'
 services:
-  freenet:
-    container_name: freenet
+  freenet-patched:
+    container_name: freenet-patched
     build:
       context: .
       dockerfile: Dockerfile
